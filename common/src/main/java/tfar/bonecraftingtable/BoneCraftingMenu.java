@@ -256,6 +256,14 @@ public class BoneCraftingMenu extends AbstractContainerMenu {
         return flag;
     }
 
+    /**
+     * Called to determine if the current slot is valid for the stack merging (double-click) code. The stack passed in is null for the initial slot that was double-clicked.
+     */
+    @Override
+    public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
+        return slot.container != this.resultSlots && super.canTakeItemForPickAll(stack, slot);
+    }
+
     public void removed(Player pPlayer) {
         super.removed(pPlayer);
         this.access.execute((p_39371_, p_39372_) -> {
