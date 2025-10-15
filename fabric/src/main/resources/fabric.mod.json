@@ -11,12 +11,16 @@
         "homepage": "https://fabricmc.net/",
         "sources": "https://github.com/FabricMC/fabric-example-mod"
     },
+    "accessWidener": "${mod_id}.accesswidener",
     "license": "${license}",
     "icon": "${mod_id}.png",
     "environment": "*",
     "entrypoints": {
         "main": [
-            "com.example.examplemod.ExampleMod"
+          "tfar.bonecraftingtable.BoneCraftingTableFabric"
+        ],
+        "client": [
+            "tfar.bonecraftingtable.Client"
         ]
     },
     "mixins": [
