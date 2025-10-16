@@ -2,6 +2,8 @@ package tfar.bonecraftingtable;
 
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -30,6 +32,11 @@ public class BoneCraftingMenu extends AbstractContainerMenu {
     };
     private final Player player;
     public CraftingRecipe current;
+
+    /**
+     * Stores the game time of the last time the player took items from the the crafting result slot. This is used to prevent the sound from being played multiple times on the same tick.
+     */
+    long lastSoundTime;
 
     public BoneCraftingContainer getCraftSlots() {
         return craftSlots;
@@ -60,7 +67,19 @@ public class BoneCraftingMenu extends AbstractContainerMenu {
         this.access = access;
         this.player = inventory.player;
 
-        this.addSlot(new BoneResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 129, 35));
+        this.addSlot(new BoneResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 129, 35){
+            @Override
+            public void onTake(Player player, ItemStack stack) {
+                super.onTake(player, stack);
+                access.execute((p_40364_, p_40365_) -> {
+                    long l = p_40364_.getGameTime();
+                    if (lastSoundTime != l) {
+                        p_40364_.playSound(null, p_40365_, SoundEvents.UI_STONECUTTER_TAKE_RESULT, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        lastSoundTime = l;
+                    }
+                });
+            }
+        });
 
         this.addSlot(new Slot(extra, 0, 8, 17));
 
