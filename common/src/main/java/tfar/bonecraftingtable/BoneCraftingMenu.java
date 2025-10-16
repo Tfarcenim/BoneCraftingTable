@@ -38,6 +38,16 @@ public class BoneCraftingMenu extends AbstractContainerMenu {
     public void updatePattern(ItemStack stack) {
         BonePattern pattern = BonePattern.findPattern(stack);
         craftSlots.updatePattern(pattern);
+        for (int i = 0; i < craftSlots.getContainerSize();i++) {
+            ItemStack s = craftSlots.getItem(i);
+            if (!craftSlots.canPlaceItem(i,s) && !craftSlots.getItem(i).isEmpty()) {
+                quickMoveStack(player,i + 2);
+                if (!s.isEmpty()) {
+                    player.drop(s,true);
+                    craftSlots.setItem(i,ItemStack.EMPTY);
+                }
+            }
+        }
     }
 
     public BoneCraftingMenu(int id, Inventory $$1) {
@@ -50,7 +60,7 @@ public class BoneCraftingMenu extends AbstractContainerMenu {
         this.access = access;
         this.player = inventory.player;
 
-        this.addSlot(new ResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 129, 35));
+        this.addSlot(new BoneResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 129, 35));
 
         this.addSlot(new Slot(extra, 0, 8, 17));
 
@@ -120,8 +130,8 @@ public class BoneCraftingMenu extends AbstractContainerMenu {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
             if (pIndex == 0) {
-                this.access.execute((level, pos) -> itemstack1.getItem().onCraftedBy(itemstack1, level, pPlayer));
-                if (!this.moveItemStackToCrafting(itemstack1, 10, 46, true)) {
+                this.access.execute((p_39378_, p_39379_) -> itemstack1.getItem().onCraftedBy(itemstack1, p_39378_, player));
+                if (!this.moveItemStackTo(itemstack1, CRAFT_SLOT_END, USE_ROW_SLOT_END, true)) {
                     return ItemStack.EMPTY;
                 }
 
@@ -157,103 +167,6 @@ public class BoneCraftingMenu extends AbstractContainerMenu {
         }
 
         return itemstack;
-    }
-
-    /**
-     * Merges provided ItemStack with the first available one in the container/player inventor between minIndex
-     * (included) and maxIndex (excluded). Args : stack, minIndex, maxIndex, negativDirection. [!] the Container
-     * implementation do not check if the item is valid for the slot
-     */
-    //@Override
-    protected boolean moveItemStackToCrafting(ItemStack pStack, int pStartIndex, int pEndIndex, boolean pReverseDirection) {
-
-        boolean flag = false;
-
-        if (current == null) {
-            return false;
-        }
-
-
-        int i = pStartIndex;
-        if (pReverseDirection) {
-            i = pEndIndex - 1;
-        }
-
-        if (pStack.isStackable()) {
-            while(!pStack.isEmpty()) {
-                if (pReverseDirection) {
-                    if (i < pStartIndex) {
-                        break;
-                    }
-                } else if (i >= pEndIndex) {
-                    break;
-                }
-
-                Slot slot = this.slots.get(i);
-                ItemStack itemstack = slot.getItem();
-                if (!itemstack.isEmpty() && ItemStack.isSameItemSameComponents(pStack, itemstack)) {
-                    int j = itemstack.getCount() + pStack.getCount();
-                    int maxSize = Math.min(slot.getMaxStackSize(), pStack.getMaxStackSize());
-                    if (j <= maxSize) {
-                        pStack.setCount(0);
-                        itemstack.setCount(j);
-                        slot.setChanged();
-                        flag = true;
-                    } else if (itemstack.getCount() < maxSize) {
-                        pStack.shrink(maxSize - itemstack.getCount());
-                        itemstack.setCount(maxSize);
-                        slot.setChanged();
-                        flag = true;
-                    }
-                }
-
-                if (pReverseDirection) {
-                    --i;
-                } else {
-                    ++i;
-                }
-            }
-        }
-
-        if (!pStack.isEmpty()) {
-            if (pReverseDirection) {
-                i = pEndIndex - 1;
-            } else {
-                i = pStartIndex;
-            }
-
-            while(true) {
-                if (pReverseDirection) {
-                    if (i < pStartIndex) {
-                        break;
-                    }
-                } else if (i >= pEndIndex) {
-                    break;
-                }
-
-                Slot slot1 = this.slots.get(i);
-                ItemStack itemstack1 = slot1.getItem();
-                if (itemstack1.isEmpty() && slot1.mayPlace(pStack)) {
-                    if (pStack.getCount() > slot1.getMaxStackSize()) {
-                        slot1.set(pStack.split(slot1.getMaxStackSize()));
-                    } else {
-                        slot1.set(pStack.split(pStack.getCount()));
-                    }
-
-                    slot1.setChanged();
-                    flag = true;
-                    break;
-                }
-
-                if (pReverseDirection) {
-                    --i;
-                } else {
-                    ++i;
-                }
-            }
-        }
-
-        return flag;
     }
 
     /**
